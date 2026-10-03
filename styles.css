@@ -1,0 +1,117 @@
+:root{--gold:#c99a32;--gold2:#f2c75c;--black:#050505;--panel:#0c0c0c;--text:#f3f0e9;--muted:#b9b5ad}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--black);color:var(--text);font-family:Montserrat,Arial,sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1180px,92%);margin:auto}.announcement{background:#0a0a0a;border-bottom:1px solid #3b2a0e;text-align:center;padding:10px;font-size:12px;letter-spacing:.08em;color:#ddd}.announcement span{color:var(--gold2);font-weight:800;margin-right:10px}.nav{height:78px;background:rgba(4,4,4,.92);border-bottom:1px solid #24201a;display:flex;align-items:center;padding:0 4%;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}.logo{display:flex;align-items:center;gap:12px}.logo b{font:600 38px/1 'Cormorant Garamond';color:var(--gold2);text-shadow:0 0 20px #8c6318}.logo span{font-weight:700;letter-spacing:.16em;font-size:13px}.logo small{display:block;color:#aaa;font-size:8px;letter-spacing:.18em;margin-top:4px}.nav nav{display:flex;gap:28px;margin-left:auto;margin-right:28px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#d2d0ca}.nav nav a{transition:color .2s ease}.nav nav a:hover,.nav nav a.active{color:var(--gold2)}.nav-book{border:1px solid var(--gold);padding:12px 18px;border-radius:4px;text-transform:uppercase;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:8px}.calendar-icon{width:15px;height:15px;color:#fff;flex:0 0 auto}.hero{min-height:760px;position:relative;overflow:hidden}.hero-img{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center center;filter:saturate(.92) contrast(1.03) brightness(.94)}.hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.62) 34%,rgba(0,0,0,.16) 72%,rgba(0,0,0,.05) 100%),linear-gradient(0deg,rgba(0,0,0,.58),transparent 42%)}.hero-content{position:relative;padding-top:108px;max-width:1180px}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--gold2);font-weight:700}.hero h1{font-size:clamp(48px,7vw,90px);line-height:.85;margin:20px 0;font-weight:800;letter-spacing:-.04em}.hero h1 em,.dark-section em{font-family:'Cormorant Garamond';color:var(--gold2);font-size:1.15em;font-weight:600}.lead{font-size:18px;color:#e2dfd8}.hero-actions{display:flex;gap:12px;margin:28px 0}.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:4px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;border:1px solid transparent}.gold{background:linear-gradient(135deg,#a87617,#e4b747);color:#090909}.outline{border-color:#a9812d;background:rgba(0,0,0,.25)}.trust{display:flex;gap:22px;flex-wrap:wrap;color:#d4d0c8;font-size:11px}.scroll{position:absolute;bottom:22px;left:50%;font-size:10px;letter-spacing:.18em;color:#b9b5ad}.special{margin-top:-55px;position:relative;z-index:2;background:#090909;border:1px solid #5c451b;border-radius:10px;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 15px 50px #000}.special h2{font-size:46px;margin:0}.special h2 small{font-size:14px;letter-spacing:.1em;color:#ddd}.special p{margin:5px 0;color:#bbb}.section{padding:100px 0}.section-head{display:flex;justify-content:space-between;gap:50px;align-items:end;margin-bottom:38px}.section-head h2,.split h2,.booking h2{font:600 clamp(40px,5vw,62px)/.95 'Cormorant Garamond';margin:8px 0}.section-head>p{max-width:430px;color:var(--muted);line-height:1.7}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.cards article{background:linear-gradient(145deg,#111,#090909);border:1px solid #29231a;padding:28px;min-height:300px;display:flex;flex-direction:column}.cards article>span{color:#8e6b2c;font-size:11px}.cards h3{font-size:20px;margin:25px 0 10px}.cards p{color:#aaa;line-height:1.65;font-size:13px}.cards strong{margin-top:auto;color:var(--gold2);font-size:18px}.cards strong small{display:block;color:#888;font-size:9px;margin-top:4px}.cards a{margin-top:18px;font-size:11px;color:#ddd}.dark-section{padding:110px 0;background:#090909;border-top:1px solid #17130d;border-bottom:1px solid #17130d}.split{display:grid;grid-template-columns:1fr 1fr;gap:80px}.benefits{display:grid;grid-template-columns:1fr 1fr;gap:35px}.benefits b{color:var(--gold2)}.benefits h3{margin:7px 0}.benefits p{color:#999;font-size:13px;line-height:1.6}.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.gallery img{width:100%;height:330px;object-fit:cover;border-radius:4px;cursor:pointer;transition:.3s}.gallery img:hover{transform:translateY(-4px);filter:brightness(1.08)}.video{margin-top:18px;background:#0b0b0b;border:1px solid #29231a;display:grid;grid-template-columns:1.5fr 1fr}.video video{width:100%;height:420px;object-fit:cover;background:#000}.video>div{padding:45px}.video h3{font:600 40px 'Cormorant Garamond';margin:10px 0}.video p:last-child{color:#aaa;line-height:1.6}.booking{padding:100px 0;display:grid;grid-template-columns:.8fr 1.2fr;gap:70px}.booking-intro>p{color:#aaa;line-height:1.7}.policy{display:grid;gap:10px;margin-top:28px;color:#d4d0c8;font-size:12px}.policy span{border-bottom:1px solid #272218;padding-bottom:9px}form{display:grid;grid-template-columns:1fr 1fr;gap:16px}label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa}input[type="date"]{color-scheme:dark}input,select,textarea{width:100%;margin-top:7px;background:#0c0c0c;color:#eee;border:1px solid #393025;padding:13px;border-radius:3px;font:13px Montserrat}textarea{resize:vertical}.full{grid-column:1/-1}fieldset{border:1px solid #30281d;padding:15px;display:flex;flex-wrap:wrap;gap:14px}.check{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0}.check input{width:auto;margin:0}.form-note{font-size:10px!important;color:#777!important;margin:0}footer{background:#080808;border-top:1px solid #2c2417;padding:45px 0 15px}.footer{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px;align-items:start}.footer strong{font-size:11px;letter-spacing:.1em;color:var(--gold2)}.footer p{color:#999;font-size:12px;line-height:1.7}.copyright{border-top:1px solid #1c1812;margin-top:35px;padding-top:15px;color:#666;font-size:10px}@media(max-width:900px){.nav nav{display:none}.cards{grid-template-columns:1fr 1fr}.gallery{grid-template-columns:1fr 1fr}.booking,.split{grid-template-columns:1fr}.video{grid-template-columns:1fr}.hero{min-height:700px}.hero-content{padding-top:100px}.special{margin-top:0;border-radius:0}.footer{grid-template-columns:1fr 1fr}}@media(max-width:600px){.nav{height:68px}.nav-book{display:none}.cards,.gallery{grid-template-columns:1fr}.gallery img{height:420px}.hero{min-height:680px}.hero-img{object-position:58% center}.hero-content{padding-top:85px}.hero h1{font-size:53px}.special{padding:22px;display:block}.special .btn{margin-top:15px}.section{padding:70px 0}.section-head{display:block}.section-head>p{margin-top:20px}.video video{height:300px}.video>div{padding:25px}.booking{padding:70px 0}form{grid-template-columns:1fr}.full{grid-column:auto}.footer{grid-template-columns:1fr}}
+
+/* September Special promotional screen */
+.promo-screen{display:none;position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:28px;opacity:1;visibility:visible;transition:opacity .25s ease,visibility .25s ease}.promo-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}.promo-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px)}.promo-card{position:relative;z-index:1;width:min(620px,94vw);max-height:94vh;display:flex;flex-direction:column;align-items:center;background:linear-gradient(145deg,#0d0d0d,#050505);border:1px solid #8f6a25;border-radius:12px;box-shadow:0 30px 100px rgba(0,0,0,.8),0 0 50px rgba(201,154,50,.12);overflow:hidden}.promo-image-wrap{width:100%;max-height:78vh;background:#000;display:flex;align-items:center;justify-content:center}.promo-image-wrap img{display:block;width:100%;height:auto;max-height:78vh;object-fit:contain}.promo-close{position:absolute;right:12px;top:10px;z-index:3;width:38px;height:38px;border:1px solid rgba(242,199,92,.65);border-radius:50%;background:rgba(0,0,0,.78);color:#f2c75c;font-size:28px;line-height:1;cursor:pointer}.promo-actions{width:100%;display:flex;justify-content:center;align-items:center;gap:14px;padding:16px;background:#080808;border-top:1px solid #2b2111}.promo-actions .btn{min-width:245px}.promo-dismiss{border:0;background:transparent;color:#aaa;font:600 11px Montserrat,Arial,sans-serif;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;padding:12px}.promo-dismiss:hover{color:#f2c75c}@media(max-width:600px){.promo-screen{padding:10px}.promo-card{width:96vw;max-height:96vh}.promo-image-wrap,.promo-image-wrap img{max-height:82vh}.promo-actions{flex-direction:column;gap:4px;padding:12px}.promo-actions .btn{width:100%;min-width:0}.promo-dismiss{padding:8px 12px}.promo-close{right:8px;top:8px}}
+
+.hero-content{padding-top:112px;max-width:1180px;margin:auto;padding-left:0;padding-right:0}.hero-content .lead{margin-top:0}.hero-special{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;width:min(1180px,92%);display:grid;grid-template-columns:repeat(4,1fr) 2.2fr;background:rgba(5,5,5,.9);border:1px solid #9a721f;border-radius:7px;padding:14px 18px;z-index:2;backdrop-filter:blur(8px);box-shadow:0 12px 40px rgba(0,0,0,.55)}.hero-special-item{display:flex;align-items:center;justify-content:center;gap:10px;border-right:1px solid #4a3817;color:#ddd;text-align:center;font-size:10px;letter-spacing:.04em;line-height:1.25}.hero-special-item b{font-size:26px;color:var(--gold2)}.hero-special-item small{font-size:9px;color:#bbb}.hero-special-rate{padding-left:26px;display:flex;flex-direction:column;justify-content:center;gap:4px}.hero-special-rate .eyebrow{margin:0}.hero-special-rate strong{font-size:15px}.hero-special-rate strong em{font-style:normal;color:var(--gold2)}.hero-special-rate span{color:#aaa;font-size:12px}.hero-policy{position:absolute;left:0;right:0;bottom:-1px;transform:translateY(100%);background:#070707;border-top:1px solid #1d1810;display:grid;grid-template-columns:repeat(4,1fr);padding:18px 7%;z-index:3}.hero-policy span{border-right:1px solid #3a2d18;padding:0 28px;color:#ddd;font-size:11px;line-height:1.45}.hero-policy span:last-child{border-right:0}.hero-policy b{color:var(--gold2);font-size:22px;float:left;margin-right:12px}.hero-policy small{color:#999;font-size:9px;letter-spacing:.06em}.special{display:none}
+@media(max-width:900px){.hero-special{grid-template-columns:1fr 1fr;gap:12px;bottom:12px}.hero-special-item:nth-child(2n){border-right:0}.hero-special-rate{grid-column:1/-1;border-top:1px solid #4a3817;padding:12px 0 0}.hero-policy{position:relative;transform:none;grid-template-columns:1fr 1fr;padding:18px 5%}.hero-policy span{margin-bottom:12px}.hero{min-height:680px}}
+@media(max-width:600px){.hero{min-height:720px}.hero-content{padding-top:82px;padding-left:4%;padding-right:4%}.hero-special{width:92%;grid-template-columns:1fr 1fr}.hero-policy{grid-template-columns:1fr;padding:18px 5%}.hero-policy span{border-right:0;border-bottom:1px solid #3a2d18;padding:12px 0}.hero-policy span:last-child{border-bottom:0}.hero h1{font-size:53px}}
+
+/* V13 homepage refinements */
+.hero{min-height:760px;background:#050505}.hero-img{object-position:center center;filter:saturate(.96) contrast(1.04) brightness(.96)}.hero-overlay{background:linear-gradient(90deg,rgba(0,0,0,.90) 0%,rgba(0,0,0,.54) 32%,rgba(0,0,0,.10) 68%,rgba(0,0,0,.02) 100%),linear-gradient(0deg,rgba(0,0,0,.50),transparent 50%)}.hero-content{padding-top:110px}.hero h1{max-width:650px}.hero-special{bottom:18px}.hero-policy{padding-left:7%;padding-right:7%}
+
+/* Dynamic additional stops */
+.stops-field{display:block}
+.stops-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.45rem}
+.stops-header label{margin:0}
+.add-stop-btn{
+  border:0;
+  background:transparent;
+  color:var(--gold2);
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+  padding:.2rem 0;
+  letter-spacing:.02em;
+  transition:opacity .2s ease,transform .2s ease;
+}
+.add-stop-btn:hover{opacity:.8;transform:translateY(-1px)}
+#stopsContainer{display:grid;gap:.65rem}
+.stop-input{width:100%}
+
+/* V19 reservation readability improvements */
+#bookingForm label,
+#bookingForm legend,
+#bookingForm .form-note,
+#bookingForm .check{
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+#bookingForm input,
+#bookingForm select{
+  font-size: 1.02rem;
+  min-height: 44px;
+}
+#bookingForm .form-note{
+  line-height: 1.5;
+}
+@media (max-width: 700px){
+  #bookingForm label,
+  #bookingForm legend,
+  #bookingForm .form-note,
+  #bookingForm .check,
+  #bookingForm input,
+  #bookingForm select{
+    font-size: 1rem;
+  }
+}
+
+/* V20 calculated hours field */
+#hoursRequested{
+  cursor: default;
+  opacity: .95;
+}
+#hoursRequested::placeholder{
+  opacity: .7;
+}
+
+/* V21 reservation price breakdown */
+.price-summary{
+  margin-top:18px;
+  padding:18px 20px;
+  border:1px solid rgba(212,164,52,.45);
+  border-radius:8px;
+  background:linear-gradient(180deg,rgba(212,164,52,.06),rgba(0,0,0,.08));
+}
+.price-summary-head,.price-summary-line,.price-breakdown-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.price-summary-head{
+  padding-bottom:12px;
+  margin-bottom:10px;
+  border-bottom:1px solid rgba(212,164,52,.25);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:13px;
+}
+.price-summary-head strong{font-size:22px;color:var(--gold2)}
+.price-breakdown{display:grid;gap:7px;font-size:13px;color:#d8d8d8}
+.price-breakdown p{margin:0;color:#9f9f9f}
+.price-breakdown-row strong{color:#f1f1f1}
+.price-summary-line{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:13px}
+.price-summary-line strong{color:var(--gold2)}
+.price-summary-line.balance{border-top:0;margin-top:4px;padding-top:0}
+.price-note{margin:12px 0 0;color:#8f8f8f;font-size:11px;line-height:1.5}
+
+/* V22 live availability calendar */
+.date-value{margin-bottom:8px}
+.calendar-picker{border:1px solid #393025;background:#090909;border-radius:6px;padding:12px;margin-top:8px}
+.calendar-head{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:8px;margin-bottom:10px}
+.calendar-head strong{text-align:center;color:#f2f0e9;font-size:13px;letter-spacing:.06em}
+.calendar-head button{height:32px;border:1px solid #4b3a20;background:#111;color:var(--gold2);border-radius:4px;font-size:20px;cursor:pointer}
+.calendar-head button:hover{background:#17120a}
+.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calendar-weekdays span{text-align:center;color:#777;font-size:9px;text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px}
+.cal-day{height:34px;border:1px solid transparent;background:#111;color:#ddd;border-radius:4px;font:600 11px Montserrat;cursor:pointer}
+.cal-day:hover:not(:disabled){border-color:var(--gold);color:var(--gold2)}
+.cal-day.selected{background:var(--gold);color:#090909;border-color:var(--gold2)}
+.cal-day:disabled{opacity:.25;cursor:not-allowed;text-decoration:line-through}
+.cal-day.full{opacity:.35}
+.cal-day.blank{background:transparent;border:0;cursor:default}
+.availability-note{display:block;margin-top:7px;color:#888;font-size:10px;text-transform:none;letter-spacing:0}
+.availability-note.error{color:#d88}.availability-note.full{color:#d7a943}
+#bookingForm button[type="submit"]:disabled{opacity:.6;cursor:wait}
+.admin-footer-link{display:block;width:max-content;margin:12px auto 0;color:#666;text-decoration:none;font:600 9px Montserrat,sans-serif;text-transform:uppercase;letter-spacing:.1em}.admin-footer-link:hover{color:var(--gold2)}
