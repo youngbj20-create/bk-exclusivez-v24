@@ -1,5 +1,11 @@
 process.env.TZ = 'America/New_York';
+
 const http = require('http');
+
+const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
+const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
+const SQUARE_API_URL = 'https://connect.squareupsandbox.com/v2/online-checkout/payment-links';
+const SQUARE_API_VERSION = '2026-09-16';
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -108,6 +114,44 @@ function recordFromBooking(b, status='hold') {
     pickup:b.pickup||'', stops:Array.isArray(b.stops)?b.stops:[], dropoff:b.dropoff||'', addons:b.addons||{}
   };
 }
+async function createSquarePaymentLink(reservation) {
+  if (!SQUARE_ACCESS_TOKEN || !SQUARE_LOCATION_ID) {
+    throw new Error('Square credentials are not configured.');
+  }
+
+  const response = await fetch(SQUARE_API_URL, {
+    method: 'POST',
+    headers: {
+      'Square-Version': SQUARE_API_VERSION,
+      'Authorization': `Bearer ${SQUARE_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      quick_pay: {
+        name: 'BK Exclusivez Reservation Deposit',
+        price_money: {
+          amount: 10000,
+          currency: 'USD'
+        },
+        location_id: SQUARE_LOCATION_ID
+      },
+      description: `BK Exclusivez reservation deposit - ${reservation.id}`,
+      payment_note: `Reservation ID: ${reservation.id}`
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error('Square API error:', data);
+    throw new Error(
+      data?.errors?.[0]?.detail || 'Unable to create Square payment link.'
+    );
+  }
+
+  return data.payment_link;
+}
 
 function serveStatic(req, res, pathname) {
   let file = pathname === '/' ? 'index.html' : pathname === '/admin' ? 'admin.html' : pathname.slice(1);
@@ -141,14 +185,64 @@ const server = http.createServer(async (req, res) => {
       const reservations=rows.filter(reservationBusy).filter(r=>{const s=new Date(r.startAt).getTime(),e=new Date(r.endAt).getTime();return s<monthEnd&&e>monthStart}).map(r=>({startAt:r.startAt,endAt:r.endAt,status:r.status}));
       return json(res,200,{month,reservations});
     }
-    if (req.method === 'POST' && pathname === '/api/hold') {
-      cleanupExpired(); const b=await parseBody(req), error=validateBooking(b); if(error)return json(res,400,{error});
-      const record=recordFromBooking(b,'hold'); const rows=readReservations().filter(reservationBusy);
-      const conflict=rows.some(r=>overlaps(new Date(record.startAt).getTime(),new Date(record.endAt).getTime(),new Date(r.startAt).getTime(),new Date(r.endAt).getTime()));
-      if(conflict)return json(res,409,{error:'That time is no longer available. Please choose another time.'});
-      const all=readReservations();all.push(record);writeReservations(all);
-      return json(res,201,{ok:true,reservationId:record.id,expiresAt:record.expiresAt,holdMinutes:HOLD_MINUTES});
-    }
+    if (req.method === 'POST' && pathname === '/api/create-payment-link') {
+  const b = await parseBody(req);
+
+  if (!b.reservationId) {
+    return json(res, 400, {
+      error: 'Reservation ID is required.'
+    });
+  }
+
+  cleanupExpired();
+
+  const rows = readReservations();
+  const reservation = rows.find(r => r.id === String(b.reservationId));
+
+  if (!reservation) {
+    return json(res, 404, {
+      error: 'Reservation not found or hold expired.'
+    });
+  }
+
+  if (reservation.status !== 'hold') {
+    return json(res, 400, {
+      error: 'This reservation is no longer available for payment.'
+    });
+  }
+
+  if (
+    reservation.expiresAt &&
+    new Date(reservation.expiresAt).getTime() <= Date.now()
+  ) {
+    return json(res, 410, {
+      error: 'Your reservation hold has expired. Please start again.'
+    });
+  }
+
+  try {
+    const paymentLink = await createSquarePaymentLink(reservation);
+
+    reservation.squarePaymentLinkId = paymentLink.id;
+    reservation.squareOrderId = paymentLink.order_id;
+
+    writeReservations(rows);
+
+    return json(res, 200, {
+      ok: true,
+      reservationId: reservation.id,
+      paymentUrl: paymentLink.url,
+      paymentLinkId: paymentLink.id
+    });
+
+  } catch (error) {
+    console.error('Square payment link error:', error);
+
+    return json(res, 502, {
+      error: 'Unable to connect to Square. Please try again.'
+    });
+  }
+}
     if (req.method === 'POST' && pathname === '/api/airport-quote') {
       const b=await parseBody(req);
       if(!validDate(b.date)||!b.start_time||!b.end_time)return json(res,400,{error:'Please provide a valid date and time.'});
