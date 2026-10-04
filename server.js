@@ -185,7 +185,53 @@ const server = http.createServer(async (req, res) => {
       const reservations=rows.filter(reservationBusy).filter(r=>{const s=new Date(r.startAt).getTime(),e=new Date(r.endAt).getTime();return s<monthEnd&&e>monthStart}).map(r=>({startAt:r.startAt,endAt:r.endAt,status:r.status}));
       return json(res,200,{month,reservations});
     }
-    if (req.method === 'POST' && pathname === '/api/create-payment-link') {
+    if (req.method === 'POST' && pathname === '/api/hold') {
+  const b = await parseBody(req);
+
+  const validationError = validateBooking(b);
+  if (validationError) {
+    return json(res, 400, { error: validationError });
+  }
+
+  cleanupExpired();
+
+  const rows = readReservations();
+
+  const startMinutes = minutesFromTime(b.start_time);
+  const endMinutes = Number(b.end_minutes);
+
+  const startAt = localDateTime(b.date, startMinutes);
+  const endAt = localDateTime(b.date, endMinutes);
+
+  const conflict = rows
+    .filter(reservationBusy)
+    .some(r =>
+      overlaps(
+        startAt.getTime(),
+        endAt.getTime(),
+        new Date(r.startAt).getTime(),
+        new Date(r.endAt).getTime()
+      )
+    );
+
+  if (conflict) {
+    return json(res, 409, {
+      error: 'That time is no longer available. Please choose another time.'
+    });
+  }
+
+  const record = recordFromBooking(b, 'hold');
+
+  rows.push(record);
+  writeReservations(rows);
+
+  return json(res, 201, {
+    ok: true,
+    reservationId: record.id,
+    expiresAt: record.expiresAt
+  });
+}
+if (req.method === 'POST' && pathname === '/api/create-payment-link') {
   const b = await parseBody(req);
 
   if (!b.reservationId) {
