@@ -225,14 +225,37 @@ bookingForm?.addEventListener('submit',async e=>{
       window.location.href='sms:+19145621083?body='+encodeURIComponent(msg);
       return;
     }
-    const r=await fetch('/api/hold',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const data=await r.json();
-    if(!r.ok) throw new Error(data.error||'That time is no longer available.');
-    const expires=new Date(data.expiresAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-    const msg=`BK EXCLUSIVEZ BOOKING REQUEST\n\nName: ${payload.name}\nPhone: ${payload.phone}\nDate: ${payload.date}\nStart: ${payload.start_time}\nEnd: ${payload.end_time}\nHours: ${hours}\nEstimated Total: ${totalPriceEl?.textContent}\nConfirmation Deposit: $100.00\nEstimated Remaining Balance: ${balanceDueEl?.textContent}\nPassengers: ${payload.passengers}\nPickup: ${payload.pickup}\nStops: ${stops.length?stops.map((s,i)=>`${i+1}. ${s}`).join(' | '):'None'}\nDrop-Off: ${payload.dropoff}\n\nA temporary hold has been placed until ${expires}. Square payment will finalize the reservation once connected.`;
-    alert(`Your time is temporarily held until ${expires}.\n\nSquare payment is not connected yet, so the reservation is not permanently confirmed.`);
-    window.location.href='sms:+19145621083?body='+encodeURIComponent(msg);
-    monthBusyCache={};await refreshForDate();
+    const r=await fetch('/api/hold',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(payload)
+});
+
+const data=await r.json();
+
+if(!r.ok){
+  throw new Error(data.error||'That time is no longer available.');
+}
+
+const paymentResponse=await fetch('/api/create-payment-link',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+    reservationId:data.reservationId
+  })
+});
+
+const paymentData=await paymentResponse.json();
+
+if(!paymentResponse.ok){
+  throw new Error(paymentData.error||'Unable to create the Square payment link.');
+}
+
+if(!paymentData.paymentUrl){
+  throw new Error('Square did not return a payment link.');
+}
+
+window.location.href=paymentData.paymentUrl;
   }catch(err){alert(err.message||'Unable to submit that request. Please try again.');}
   finally{if(button){button.disabled=false;button.textContent=isAirport?'Request Airport Quote':'Continue to $100 Deposit';}}
 });
