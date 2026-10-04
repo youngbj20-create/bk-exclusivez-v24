@@ -4,6 +4,9 @@ const http = require('http');
 
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
+const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
+const SQUARE_WEBHOOK_URL = process.env.SQUARE_WEBHOOK_URL || 'https://bk-exclusivez-v24.onrender.com/api/square-webhook';
+
 const SQUARE_API_URL = 'https://connect.squareupsandbox.com/v2/online-checkout/payment-links';
 const SQUARE_API_VERSION = '2026-09-16';
 const fs = require('fs');
@@ -185,6 +188,87 @@ const server = http.createServer(async (req, res) => {
       const reservations=rows.filter(reservationBusy).filter(r=>{const s=new Date(r.startAt).getTime(),e=new Date(r.endAt).getTime();return s<monthEnd&&e>monthStart}).map(r=>({startAt:r.startAt,endAt:r.endAt,status:r.status}));
       return json(res,200,{month,reservations});
     }
+    if (req.method === 'POST' && pathname === '/api/square-webhook') {
+  let rawBody = '';
+
+  req.setEncoding('utf8');
+
+  req.on('data', chunk => {
+    rawBody += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const signature = req.headers['x-square-hmacsha256-signature'];
+
+      if (!SQUARE_WEBHOOK_SIGNATURE_KEY) {
+        console.error('Square webhook signature key is not configured.');
+        res.writeHead(500);
+        return res.end('Webhook configuration error.');
+      }
+
+      const expectedSignature = crypto
+        .createHmac('sha256', SQUARE_WEBHOOK_SIGNATURE_KEY)
+        .update(SQUARE_WEBHOOK_URL + rawBody)
+        .digest('base64');
+
+      const received = Buffer.from(signature || '', 'utf8');
+      const expected = Buffer.from(expectedSignature, 'utf8');
+
+      if (
+        received.length !== expected.length ||
+        !crypto.timingSafeEqual(received, expected)
+      ) {
+        console.error('Invalid Square webhook signature.');
+        res.writeHead(403);
+        return res.end('Invalid signature.');
+      }
+
+      const event = JSON.parse(rawBody);
+
+      console.log('Square webhook received:', event.type);
+
+      if (event.type === 'payment.updated') {
+        const payment = event?.data?.object?.payment;
+
+        if (payment?.status === 'COMPLETED' && payment?.order_id) {
+          const rows = readReservations();
+
+          const reservation = rows.find(
+            r => r.squareOrderId === payment.order_id
+          );
+
+          if (reservation) {
+            reservation.status = 'confirmed';
+            reservation.expiresAt = null;
+            reservation.squarePaymentId = payment.id;
+            reservation.paidAt = new Date().toISOString();
+
+            writeReservations(rows);
+
+            console.log(
+              `Reservation ${reservation.id} marked as PAID.`
+            );
+          } else {
+            console.log(
+              `No reservation found for Square order ${payment.order_id}.`
+            );
+          }
+        }
+      }
+
+      res.writeHead(200);
+      res.end('OK');
+
+    } catch (error) {
+      console.error('Square webhook error:', error);
+      res.writeHead(400);
+      res.end('Invalid webhook.');
+    }
+  });
+
+  return;
+}
     if (req.method === 'POST' && pathname === '/api/hold') {
   const b = await parseBody(req);
 
