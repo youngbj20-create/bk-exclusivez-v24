@@ -7,7 +7,7 @@ const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
 const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
 const SQUARE_WEBHOOK_URL = process.env.SQUARE_WEBHOOK_URL || 'https://bk-exclusivez-v24.onrender.com/api/square-webhook';
 
-const SQUARE_API_URL = 'https://connect.squareupsandbox.com/v2/online-checkout/payment-links';
+const SQUARE_API_URL = 'https://connect.squareup.com/v2/online-checkout/payment-links';
 const SQUARE_API_VERSION = '2026-09-16';
 const fs = require('fs');
 const path = require('path');
