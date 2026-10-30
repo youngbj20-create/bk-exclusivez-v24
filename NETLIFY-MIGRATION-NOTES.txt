@@ -1,0 +1,26 @@
+BK EXCLUSIVEZ - NETLIFY MIGRATION PREVIEW
+
+This folder contains the original V24 static site plus an initial Netlify Functions backend conversion.
+Do not deploy to production or switch Square webhooks until all environment variables are configured and end-to-end tests pass.
+
+Required Netlify environment variables:
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY (server-side secret; never put in browser code)
+- ADMIN_USERNAME
+- ADMIN_PASSWORD
+- ADMIN_SESSION_SECRET (long random secret)
+- SQUARE_ACCESS_TOKEN (Production token only after tests are ready)
+- SQUARE_LOCATION_ID
+- SQUARE_WEBHOOK_SIGNATURE_KEY
+- SQUARE_WEBHOOK_URL (must exactly equal the Production webhook notification URL)
+
+Supabase table expected: public.reservations, with the columns from the SQL supplied in the migration instructions.
+
+Important caveats for this preview:
+1. Supabase-backed availability currently checks records then inserts; simultaneous requests may need a database-side exclusion constraint/transaction to prevent a race.
+2. Date handling is currently pinned to Eastern Daylight Time (-04:00) and should be updated for EST/EDT transitions before relying on year-round bookings.
+3. Configure Supabase RLS and keep the service role key exclusively in Netlify server-side environment variables.
+4. Square webhook URL and signature key are specific to the new Netlify endpoint. Create/update the Production subscription only after deployment and testing; do not keep the Render URL in SQUARE_WEBHOOK_URL.
+5. The existing Render service remains the rollback target until Netlify is fully verified.
+
+Deploy only after reviewing and testing this migration preview.
