@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
@@ -11,7 +11,7 @@ const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
 const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
 const SQUARE_WEBHOOK_URL = process.env.SQUARE_WEBHOOK_URL;
 const SQUARE_API_URL = 'https://connect.squareup.com/v2/online-checkout/payment-links';
-const SQUARE_API_VERSION = process.env.SQUARE_API_VERSION || '2026-09-16';
+const SQUARE_API_VERSION = '2026-09-16';
 const HOLD_MINUTES = 15;
 
 function response(statusCode, body, headers = {}) {
@@ -270,7 +270,7 @@ exports.handler = async (event) => {
 
     if (method==='POST' && pathname==='/api/admin/login') {
       const b=parseBody(event);
-      if (!ADMIN_PASSWORD || !ADMIN_SESSION_SECRET) return fail(500,'Admin credentials are not configured on the server.');
+      if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !ADMIN_SESSION_SECRET) return fail(500,'Admin credentials are not configured on the server.');
       if (String(b.username||'')!==ADMIN_USERNAME || String(b.password||'')!==ADMIN_PASSWORD) return fail(401,'Incorrect admin username or password.');
       const payload=Buffer.from(JSON.stringify({username:ADMIN_USERNAME,exp:Date.now()+8*60*60*1000})).toString('base64url');
       const token=`${payload}.${sign(payload)}`;

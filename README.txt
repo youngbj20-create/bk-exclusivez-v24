@@ -15,15 +15,14 @@ RUN LOCALLY
 4. Open: http://localhost:3000
 5. Admin: http://localhost:3000/admin
 
-INITIAL ADMIN LOGIN
-Username: admin
-Password: BKExclusivez!2026
-
 SECURITY BEFORE PUBLIC LAUNCH
-Change these environment variables on your host:
-ADMIN_USERNAME=your-admin-username
-ADMIN_PASSWORD=your-strong-password
+Set these environment variables on your host before launch:
+ADMIN_USERNAME=<your unique admin username>
+ADMIN_PASSWORD=<your new strong password>
+ADMIN_SESSION_SECRET=<long random secret>
 NODE_ENV=production
+
+There is no default admin username or password. Never commit real credentials.
 Do not put Square secrets or access tokens in index.html or script.js.
 
 IMPORTANT FOR PUBLIC HOSTING
