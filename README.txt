@@ -1,4 +1,4 @@
-BK EXCLUSIVEZ — V24
+BK EXCLUSIVEZ
 
 WHAT'S NEW
 - Private Admin Login at /admin
