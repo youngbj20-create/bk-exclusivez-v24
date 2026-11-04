@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BK Exclusivez | Admin</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+<div id="loginView" class="admin-login"><div class="login-card"><div class="admin-mark">♛<b>BK</b><span>EXCLUSIVEZ</span></div><p class="eyebrow">PRIVATE ADMIN AREA</p><h1>Welcome Back.</h1><p>Sign in to manage bookings, airport quote requests and unavailable times.</p><form id="loginForm"><label>Admin Username<input id="username" autocomplete="username" required placeholder="Admin username"></label><label>Admin Password<input id="password" type="password" autocomplete="current-password" required placeholder="Admin password"></label><button class="btn gold full" type="submit">Sign In</button><p id="loginError" class="admin-error"></p></form><a href="/" class="back-link">← Back to BK Exclusivez</a></div></div>
+<div id="dashboardView" class="admin-dashboard hidden">
+<header class="admin-top"><div><p class="eyebrow">BK EXCLUSIVEZ</p><h1>Booking Manager</h1></div><div class="admin-actions"><span id="adminUser"></span><button id="logoutBtn" class="btn outline">Log Out</button></div></header>
+<main class="admin-main">
+<section class="stats"><div class="stat"><span>Total Records</span><strong id="statTotal">0</strong></div><div class="stat"><span>Confirmed</span><strong id="statConfirmed">0</strong></div><div class="stat"><span>Airport Quotes</span><strong id="statQuotes">0</strong></div><div class="stat"><span>Pending Holds</span><strong id="statHolds">0</strong></div></section>
+<section class="admin-grid">
+<div class="panel"><div class="panel-head"><div><p class="eyebrow">SCHEDULE</p><h2>Block Time</h2></div></div><p class="muted">Block a date/time when you're unavailable. Blocked times disappear from the customer calendar.</p><form id="blockForm" class="block-form"><label>Date<input type="date" id="blockDate" required></label><label>Start<select id="blockStart" required></select></label><label>End<select id="blockEnd" required></select></label><label class="full">Note<input id="blockNote" placeholder="Personal appointment, maintenance, etc."></label><button class="btn gold full" type="submit">Block This Time</button><p id="blockMessage" class="admin-message full"></p></form></div>
+<div class="panel calendar-panel"><div class="panel-head"><div><p class="eyebrow">WEEK VIEW</p><h2>Calendar</h2><p id="weekLabel" class="muted week-label"></p></div><div class="calendar-controls"><button id="prevWeek" class="mini-btn" type="button">← Previous</button><input type="date" id="calendarFocus"><button id="nextWeek" class="mini-btn" type="button">Next →</button><button id="todayWeek" class="mini-btn" type="button">Today</button></div></div><div class="calendar-legend"><span><i class="legend-dot available"></i> Available</span><span><i class="legend-dot blocked"></i> Blocked</span><span><i class="legend-dot booked"></i> Booked</span><span><i class="legend-dot hold"></i> Pending Hold</span></div><div id="weekCalendar" class="week-calendar"></div><div id="daySchedule" class="day-schedule week-detail"><p class="muted">Choose a date to view the schedule.</p></div></div>
+</section>
+<section class="panel records"><div class="panel-head"><div><p class="eyebrow">CUSTOMERS</p><h2>Bookings & Requests</h2></div><select id="statusFilter"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="quote">Airport quotes</option><option value="hold">Pending holds</option><option value="blocked">Blocked</option><option value="cancelled">Cancelled</option></select></div><div class="table-wrap"><table><thead><tr><th>Date / Time</th><th>Customer</th><th>Service</th><th>Total</th><th>Deposit</th><th>Status</th><th>Action</th></tr></thead><tbody id="recordsBody"></tbody></table></div></section>
+</main></div>
+<script src="admin.js"></script>
+</body></html>
