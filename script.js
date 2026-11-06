@@ -283,9 +283,29 @@ window.location.href=paymentData.paymentUrl;
   finally{if(button){button.disabled=false;button.textContent=isAirport?'Request Airport Quote':'Continue to $100 Deposit';}}
 });
 
-// Add optional stops dynamically.
+// Add and remove optional stops dynamically.
 const addStopBtn=document.getElementById('addStopBtn'),stopsContainer=document.getElementById('stopsContainer');
-if(addStopBtn&&stopsContainer){let stopCount=1;addStopBtn.addEventListener('click',()=>{stopCount++;const input=document.createElement('input');input.type='text';input.name='stop';input.className='stop-input';input.id=`stop-${stopCount}`;input.placeholder=`Optional stop ${stopCount} address`;input.autocomplete='street-address';stopsContainer.appendChild(input);input.focus();});}
+if(addStopBtn&&stopsContainer){
+  const renumberStops=()=>{
+    [...stopsContainer.querySelectorAll('.stop-row')].forEach((row,index)=>{
+      const number=index+1,input=row.querySelector('.stop-input'),remove=row.querySelector('.remove-stop-btn');
+      input.id=`stop-${number}`;input.name='stop';input.placeholder=number===1?'Optional stop address':`Optional stop ${number} address`;
+      remove.setAttribute('aria-label',`Remove stop ${number}`);
+    });
+  };
+  addStopBtn.addEventListener('click',()=>{
+    const number=stopsContainer.querySelectorAll('.stop-row').length+1;
+    const row=document.createElement('div');row.className='stop-row';
+    const input=document.createElement('input');input.type='text';input.name='stop';input.className='stop-input';input.placeholder=`Optional stop ${number} address`;input.autocomplete='street-address';
+    const remove=document.createElement('button');remove.type='button';remove.className='remove-stop-btn';remove.textContent='×';remove.title='Remove stop';remove.setAttribute('aria-label',`Remove stop ${number}`);
+    row.append(input,remove);stopsContainer.appendChild(row);renumberStops();input.focus();
+  });
+  stopsContainer.addEventListener('click',event=>{
+    const remove=event.target.closest('.remove-stop-btn');if(!remove)return;
+    remove.closest('.stop-row').remove();renumberStops();
+  });
+  renumberStops();
+}
 
 // Highlight the navigation section currently in view.
 const navLinks=[...document.querySelectorAll('.nav nav a')];

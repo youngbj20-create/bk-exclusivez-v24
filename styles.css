@@ -151,3 +151,10 @@
 .review-actions{display:flex;gap:12px;flex-wrap:wrap}
 @media(max-width:980px){.faq-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}}
 @media(max-width:650px){.faq-list{grid-template-columns:1fr;gap:0}.faq-section{padding-top:54px;padding-bottom:58px}.faq-item{grid-template-columns:34px minmax(0,1fr)}.review-panel{padding:24px;display:block}.review-actions{margin-top:18px}}
+
+/* Removable additional-stop rows */
+#stopsContainer .stop-row{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:8px;align-items:center}
+#stopsContainer .stop-input{min-width:0;margin-top:0}
+.remove-stop-btn{height:44px;width:42px;border:1px solid #654b20;border-radius:3px;background:#120e08;color:var(--gold2);font-size:24px;line-height:1;cursor:pointer;transition:background .2s ease,border-color .2s ease}
+.remove-stop-btn:hover{background:#24190a;border-color:var(--gold2)}
+.remove-stop-btn:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
