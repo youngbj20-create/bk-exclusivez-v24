@@ -111,8 +111,8 @@
 /* Customer calendar availability states */
 .cal-day.partial{border-color:#75551d;background:linear-gradient(180deg,#21190d 0%,#111 100%);color:#f0d18a}
 .cal-day.partial::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;height:4px;border-radius:50%;background:#d7a943;transform:translateX(-50%)}
-.cal-day.full,.cal-day.full:disabled{opacity:1;cursor:not-allowed;text-decoration:none;color:#b98787;background:linear-gradient(145deg,#241313,#120d0d);border-color:#583030}
-.cal-day.full::after{content:"🔒";position:absolute;right:3px;top:2px;font:7px Arial,sans-serif;opacity:.85}
+.cal-day.full,.cal-day.full:disabled{grid-column:auto;align-self:stretch;justify-self:stretch;min-width:0;width:100%;opacity:1;cursor:not-allowed;text-decoration:none;color:#b98787;background:linear-gradient(145deg,#241313,#120d0d);border-color:#583030}
+.cal-day.full::after{content:"";position:absolute;inset:0;border-radius:4px;background:rgba(150,38,38,.16);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);pointer-events:none}
 .cal-day.selected::after{display:none}
 .cal-day:disabled{opacity:.25;cursor:not-allowed;text-decoration:line-through}
 .cal-day.blank{background:transparent;border:0;cursor:default}
