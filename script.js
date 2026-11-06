@@ -102,9 +102,10 @@ function updateCalculatedHours(){
   updatePriceSummary();
 }
 
-const PRICE_PER_HOUR=65;
+const PRICE_PER_HOUR=75;
+const SAME_DAY_PRICE_PER_HOUR=85;
 const CONFIRMATION_DEPOSIT=100;
-const ADD_ON_PRICES={smoking:150,quickflicks:85,photo:200,video:75};
+const ADD_ON_PRICES={smoking:150,quickflicks:85,photo:175};
 const totalPriceEl=document.getElementById('totalPrice');
 const priceBreakdownEl=document.getElementById('priceBreakdown');
 const balanceDueEl=document.getElementById('balanceDue');
@@ -139,12 +140,19 @@ function updatePriceSummary(){
   if(bookingPolicy) bookingPolicy.innerHTML='Black Truck reservations require a <strong>$100 deposit</strong> to finalize. The remaining balance is due <strong>3 hours before pickup.</strong>';
   const hours=getBookingHours();
   if(hours===null){totalPriceEl.textContent='$0.00';balanceDueEl.textContent='—';priceBreakdownEl.innerHTML='<p>Select your start and end time to see your price breakdown.</p>';return;}
+  const selectedDate=bookingDate?.value || '';
+  const todayKey=dateKey(new Date());
+  const isSameDay=selectedDate===todayKey;
+  const hourlyRate=isSameDay?SAME_DAY_PRICE_PER_HOUR:PRICE_PER_HOUR;
   const fullHours=Math.floor(hours), halfHours=hours-fullHours;
-  const fullCharge=fullHours*PRICE_PER_HOUR, halfCharge=halfHours*PRICE_PER_HOUR;
+  const fullCharge=fullHours*hourlyRate, halfCharge=halfHours*hourlyRate;
   let total=fullCharge+halfCharge, lines=[];
-  if(fullHours) lines.push(`<div class="price-breakdown-row"><span>${fullHours} hour${fullHours===1?'':'s'} × $65</span><strong>${money(fullCharge)}</strong></div>`);
-  if(halfHours) lines.push(`<div class="price-breakdown-row"><span>0.5 hour × $65</span><strong>${money(halfCharge)}</strong></div>`);
-  const labels={smoking:'Smoking Fee',quickflicks:'Quick Flicks',photo:'Full Photography',video:'Quick Video'};
+  if(priceNote) priceNote.textContent=isSameDay
+    ? 'Same-day reservations are $85 per hour. The $100 deposit is applied toward your reservation total.'
+    : 'Reservations are $75 per hour. Same-day bookings are $85 per hour. The $100 deposit is applied toward your reservation total.';
+  if(fullHours) lines.push(`<div class="price-breakdown-row"><span>${fullHours} hour${fullHours===1?'':'s'} × $${hourlyRate}</span><strong>${money(fullCharge)}</strong></div>`);
+  if(halfHours) lines.push(`<div class="price-breakdown-row"><span>0.5 hour × $${hourlyRate}</span><strong>${money(halfCharge)}</strong></div>`);
+  const labels={smoking:'Smoking Fee',quickflicks:'Quick Flicks',photo:'Full Shoot'};
   Object.entries(ADD_ON_PRICES).forEach(([name,price])=>{const input=bookingForm?.querySelector(`[name="${name}"]`);if(input?.checked){total+=price;lines.push(`<div class="price-breakdown-row"><span>${labels[name]}</span><strong>+${money(price)}</strong></div>`);}});
   if(bookingForm?.querySelector('[name="bottle"]')?.checked) lines.push('<div class="price-breakdown-row"><span>Bottle Service</span><strong>Price upon inquiry</strong></div>');
   if(bookingForm?.querySelector('[name="flowers"]')?.checked) lines.push('<div class="price-breakdown-row"><span>Flowers</span><strong>Price upon inquiry</strong></div>');
