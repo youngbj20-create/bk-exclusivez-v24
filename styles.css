@@ -133,7 +133,21 @@
 .faq-answer li{margin:3px 0;color:#fff}
 @media(max-width:760px){.faq-list{grid-template-columns:1fr;gap:0}.faq-section{padding-top:58px;padding-bottom:58px}.faq-item{grid-template-columns:40px minmax(0,1fr);gap:11px}.faq-number{font-size:20px}}
 
-/* Current BK Exclusivez promotional flyer */
-.current-flyer-section{padding-top:54px;padding-bottom:54px}
-.current-flyer-link{display:block;max-width:900px;margin:0 auto;border:1px solid rgba(201,157,55,.65);border-radius:10px;overflow:hidden;background:#080808}
-.current-flyer{display:block;width:100%;height:auto;object-fit:contain}
+
+
+/* FAQ layout: three columns on desktop, responsive on smaller screens */
+.faq-section{padding-top:78px;padding-bottom:82px}
+.faq-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;border-top:1px solid rgba(199,157,58,.35)}
+.faq-item{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;padding:19px 0;border-bottom:1px solid rgba(199,157,58,.22);align-items:start}
+.faq-number{font:700 20px/1 'Montserrat',sans-serif;color:var(--gold);letter-spacing:.04em;padding-top:2px}
+.faq-copy h3{margin:0 0 8px;color:#fff;font:600 17px/1.25 'Cormorant Garamond',serif}
+.faq-answer{color:#fff;font:400 12px/1.7 'Montserrat',sans-serif}
+.faq-answer ul{margin:7px 0 0;padding-left:18px}
+.faq-answer li{margin:3px 0;color:#fff}
+.review-section{padding-top:64px;padding-bottom:64px}
+.review-panel{border:1px solid rgba(199,157,58,.45);border-radius:10px;padding:34px;display:flex;align-items:center;justify-content:space-between;gap:24px;background:linear-gradient(110deg,rgba(199,157,58,.08),rgba(0,0,0,0))}
+.review-panel h2{margin:0 0 8px}
+.review-panel p{margin:0;color:#ddd;line-height:1.7}
+.review-actions{display:flex;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){.faq-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}}
+@media(max-width:650px){.faq-list{grid-template-columns:1fr;gap:0}.faq-section{padding-top:54px;padding-bottom:58px}.faq-item{grid-template-columns:34px minmax(0,1fr)}.review-panel{padding:24px;display:block}.review-actions{margin-top:18px}}
