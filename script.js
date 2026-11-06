@@ -171,8 +171,18 @@ async function renderCalendar(){
     const d=new Date(y,m,day); const key=dateKey(d); const btn=document.createElement('button');btn.type='button';btn.className='cal-day';btn.textContent=day;
     if(d<today){btn.disabled=true;btn.classList.add('past')}
     const busy=monthRows.filter(x=>{const s=new Date(x.startAt).getTime(),e=new Date(x.endAt).getTime();const ds=new Date(y,m,day).getTime(),de=new Date(y,m,day+1).getTime();return s<de&&e>ds});
+    const hasBusy = busy.length > 0;
     const hasOpen=(()=>{for(let start=0;start<=1260;start+=30){const s=candidateAt(key,start),e=candidateAt(key,start+180);if(!busy.some(x=>s<new Date(x.endAt).getTime()&&e>new Date(x.startAt).getTime()))return true}return false})();
-    if(!hasOpen&&!btn.disabled){btn.disabled=true;btn.classList.add('full')}
+    if(hasBusy && hasOpen) btn.classList.add('partial');
+    if(!hasOpen&&!btn.disabled){
+      btn.disabled=true;
+      btn.classList.add('full');
+      btn.setAttribute('aria-label', `${key} — fully unavailable`);
+      btn.title='Fully unavailable';
+    } else if(hasBusy) {
+      btn.setAttribute('aria-label', `${key} — limited availability`);
+      btn.title='Some times unavailable';
+    }
     if(bookingDate?.value===key) btn.classList.add('selected');
     if(!btn.disabled) btn.addEventListener('click',async()=>{bookingDate.value=key;calendarCursor=new Date(y,m,1);document.querySelectorAll('.cal-day.selected').forEach(x=>x.classList.remove('selected'));btn.classList.add('selected');await refreshForDate();});
     calGrid.appendChild(btn);
