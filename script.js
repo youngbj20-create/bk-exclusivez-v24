@@ -215,7 +215,12 @@ if(calNext) calNext.addEventListener('click',()=>{calendarCursor.setMonth(calend
 if(startTimeSelect) startTimeSelect.addEventListener('change',()=>{fillEndTimes();updateCalculatedHours()});
 if(endTimeSelect) endTimeSelect.addEventListener('change',updateCalculatedHours);
 if(bookingForm){
-  bookingForm.querySelectorAll('input[type="checkbox"]').forEach(i=>i.addEventListener('change',updatePriceSummary));
+  bookingForm.querySelectorAll('input[type="checkbox"]').forEach(i=>i.addEventListener('change',()=>{
+    // Quick Flicks and Full Shoot are mutually exclusive photography options.
+    if(i.name==='quickflicks' && i.checked){const fullShoot=bookingForm.querySelector('[name="photo"]');if(fullShoot) fullShoot.checked=false;}
+    if(i.name==='photo' && i.checked){const quickFlicks=bookingForm.querySelector('[name="quickflicks"]');if(quickFlicks) quickFlicks.checked=false;}
+    updatePriceSummary();
+  }));
   document.querySelector('[name="service"]')?.addEventListener('change',updatePriceSummary);
 }
 
