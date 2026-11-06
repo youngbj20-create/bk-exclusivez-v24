@@ -19,3 +19,6 @@
 .open-slot{background:#0b1510;border:1px dashed #315b43;border-radius:4px;padding:8px;margin-bottom:7px}.open-slot span{display:block;font-size:8px;color:#65b483;letter-spacing:.1em}.open-slot b{display:block;color:#d7d4cc;font-size:9px;margin-top:3px}.open-slot em{display:block;color:#5c9a77;font-size:8px;font-style:normal;margin-top:3px}.empty-state{padding:10px;border:1px dashed #2a251d;border-radius:4px;color:#666;font-size:9px;line-height:1.4}.empty-state.closed{border-color:#402727;color:#8b6464}.week-detail{margin-top:16px;padding-top:16px;border-top:1px solid #282116}
 @media(max-width:1100px){.week-calendar{grid-template-columns:repeat(7,170px)}}
 @media(max-width:700px){.calendar-controls{width:100%;justify-content:flex-start}.calendar-controls input{width:140px}.week-calendar{grid-template-columns:repeat(7,155px)}}
+
+/* Whole-day blocking control */
+.block-form .all-day-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;color:#d7a943;font-size:11px}.block-form .all-day-toggle input{width:16px;height:16px;margin:0;accent-color:#d7a943}

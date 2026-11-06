@@ -30,3 +30,12 @@ V24 currently stores booking data in data/reservations.json so it is easy to tes
 
 SQUARE
 Square webhook/payment integration is not yet live in V24. Sandbox should be connected and tested before switching to Production.
+
+
+V26 UPDATE — WHOLE-DAY ADMIN BLOCKING
+- Admin > Block Time now includes “Block the entire day”.
+- A whole-day block is saved from 12:00 AM on the selected date through 12:00 AM the following date.
+- The block uses the existing authenticated /api/admin/block Netlify Function and Supabase reservation storage.
+- Partial-day blocking remains available using the Start and End selectors.
+- The admin day schedule now filters records by actual overlap with the selected calendar day.
+- Homepage video remains at assets/showcase.mp4.
