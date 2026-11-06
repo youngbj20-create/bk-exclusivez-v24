@@ -105,7 +105,7 @@ function updateCalculatedHours(){
 const PRICE_PER_HOUR=75;
 const SAME_DAY_PRICE_PER_HOUR=85;
 const CONFIRMATION_DEPOSIT=100;
-const ADD_ON_PRICES={smoking:150,quickflicks:85,photo:175};
+const ADD_ON_PRICES={quickflicks:85,photo:175};
 const totalPriceEl=document.getElementById('totalPrice');
 const priceBreakdownEl=document.getElementById('priceBreakdown');
 const balanceDueEl=document.getElementById('balanceDue');
@@ -152,7 +152,7 @@ function updatePriceSummary(){
     : 'Reservations are $75 per hour. Same-day bookings are $85 per hour. The $100 deposit is applied toward your reservation total.';
   if(fullHours) lines.push(`<div class="price-breakdown-row"><span>${fullHours} hour${fullHours===1?'':'s'} × $${hourlyRate}</span><strong>${money(fullCharge)}</strong></div>`);
   if(halfHours) lines.push(`<div class="price-breakdown-row"><span>0.5 hour × $${hourlyRate}</span><strong>${money(halfCharge)}</strong></div>`);
-  const labels={smoking:'Smoking Fee',quickflicks:'Quick Flicks',photo:'Full Shoot'};
+  const labels={quickflicks:'Quick Flicks',photo:'Full Shoot'};
   Object.entries(ADD_ON_PRICES).forEach(([name,price])=>{const input=bookingForm?.querySelector(`[name="${name}"]`);if(input?.checked){total+=price;lines.push(`<div class="price-breakdown-row"><span>${labels[name]}</span><strong>+${money(price)}</strong></div>`);}});
   if(bookingForm?.querySelector('[name="bottle"]')?.checked) lines.push('<div class="price-breakdown-row"><span>Bottle Service</span><strong>Price upon inquiry</strong></div>');
   if(bookingForm?.querySelector('[name="flowers"]')?.checked) lines.push('<div class="price-breakdown-row"><span>Flowers</span><strong>Price upon inquiry</strong></div>');
