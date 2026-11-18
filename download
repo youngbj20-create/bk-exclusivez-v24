@@ -1,0 +1,10 @@
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+.env.txt
+*.env
+# Local runtime data
+data/
+node_modules/
+.DS_Store
