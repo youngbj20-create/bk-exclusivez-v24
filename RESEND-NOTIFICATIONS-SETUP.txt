@@ -1,0 +1,27 @@
+BK EXCLUSIVEZ — RESEND EMAIL NOTIFICATIONS UPDATE
+
+WHAT THIS UPDATE ADDS
+- Requires a customer email address on Black Truck bookings and airport quote requests.
+- Emails the business when a new Black Truck request or airport quote arrives.
+- Emails the customer when a Black Truck request is approved, including the $100 Square deposit link.
+- Emails the customer and business when Square confirms the deposit and the reservation becomes confirmed.
+- Emails the customer when a pending booking request is declined.
+- Shows the customer's email address in the admin reservation details.
+- Email delivery failures are logged and do not interrupt booking or Square payment processing.
+
+BEFORE DEPLOYING
+1. In Supabase SQL Editor, run RESEND-NOTIFICATIONS-SUPABASE.sql.
+2. In Netlify, confirm RESEND_API_KEY exists for Production and Deploy Previews, scoped to Functions and Runtime.
+3. Optional but recommended Netlify environment variables:
+   RESEND_FROM_EMAIL = BK Exclusivez <bookings@notifications.bkexclusivez.com>
+   BK_NOTIFICATION_EMAIL = bktransportescapesllc@gmail.com
+   The code uses these defaults if you do not add them.
+4. Deploy the updated files through your GitHub-connected Netlify project.
+
+IMPORTANT
+- Do not put the Resend API key in website JavaScript, HTML, GitHub, or chat. It must remain a Netlify secret.
+- The sender address uses your verified notifications.bkexclusivez.com domain.
+- The customer email field is required so approval, decline, and payment confirmations have somewhere to go.
+- Existing reservations will show no email unless you add customer_email values for them in Supabase.
+- Airport quote requests remain quote-only and do not create a Square deposit link.
+- The live site has not been deployed or tested from this ZIP. After deployment, test using a real inbox you control and verify Resend Logs plus the Square webhook.

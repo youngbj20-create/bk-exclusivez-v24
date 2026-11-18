@@ -235,7 +235,7 @@ bookingForm?.addEventListener('submit',async e=>{
   const endMinutes=Number(endTimeSelect.selectedOptions[0].dataset.minutes);
   const total=isAirport?0:(Number((totalPriceEl.textContent||'0').replace(/[^0-9.]/g,''))||0);
   const stops=[...document.querySelectorAll('.stop-input')].map(i=>i.value.trim()).filter(Boolean);
-  const payload={name:f.get('name'),phone:f.get('phone'),occasion:f.get('occasion')||'',service,date:f.get('date'),start_time:f.get('start_time'),end_time:f.get('end_time'),end_minutes:endMinutes,total,passengers:f.get('passengers'),pickup:f.get('pickup'),dropoff:f.get('dropoff'),stops};
+  const payload={name:f.get('name'),phone:f.get('phone'),email:f.get('email'),occasion:f.get('occasion')||'',service,date:f.get('date'),start_time:f.get('start_time'),end_time:f.get('end_time'),end_minutes:endMinutes,total,passengers:f.get('passengers'),pickup:f.get('pickup'),dropoff:f.get('dropoff'),stops};
   const button=e.currentTarget.querySelector('button[type="submit"]');
   if(button){button.disabled=true;button.textContent=isAirport?'Sending Quote Request…':'Checking availability…';}
   try{

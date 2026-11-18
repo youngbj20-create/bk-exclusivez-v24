@@ -10,6 +10,9 @@ const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
 const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
 const SQUARE_WEBHOOK_URL = process.env.SQUARE_WEBHOOK_URL;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'BK Exclusivez <bookings@notifications.bkexclusivez.com>';
+const BK_NOTIFICATION_EMAIL = process.env.BK_NOTIFICATION_EMAIL || 'bktransportescapesllc@gmail.com';
 const SQUARE_API_URL = 'https://connect.squareup.com/v2/online-checkout/payment-links';
 const SQUARE_API_VERSION = '2026-09-16';
 const HOLD_MINUTES = 15;
@@ -23,6 +26,7 @@ function parseBody(event) {
   const raw = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : event.body;
   return JSON.parse(raw || '{}');
 }
+function validEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim()); }
 function validDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(new Date(`${s}T00:00:00`).getTime()); }
 function minutesFromTime(s) {
   const m = /^([0-9]{1,2}):([0-9]{2})\s*(AM|PM)$/i.exec(String(s || '').trim());
@@ -34,6 +38,7 @@ function minutesFromTime(s) {
 function localDateTime(date, minutes) { const d = new Date(`${date}T00:00:00`); d.setMinutes(minutes); return d; }
 function overlaps(aStart, aEnd, bStart, bEnd) { return aStart < bEnd && aEnd > bStart; }
 function validateBooking(b) {
+  if (!validEmail(b.email)) return 'Please enter a valid email address so we can send reservation updates.';
   if (!validDate(b.date)) return 'Please choose a valid date.';
   if (!b.start_time || !b.end_time) return 'Please choose a start and end time.';
   if (String(b.service || '').startsWith('Airport Pickup / Drop-Off')) return 'Airport Pickup / Drop-Off uses the quote request flow.';
@@ -50,7 +55,7 @@ function toRecord(r) {
   return {
     id:r.id, status:r.status, createdAt:r.created_at, expiresAt:r.expires_at,
     startAt:r.start_at, endAt:r.end_at,
-    customer:{name:r.customer_name || '', phone:r.customer_phone || ''},
+    customer:{name:r.customer_name || '', phone:r.customer_phone || '', email:r.customer_email || ''},
     occasion:r.occasion || '', service:r.service || '', total:Number(r.total || 0),
     deposit:Number(r.deposit || 0), passengers:Number(r.passengers || 1),
     pickup:r.pickup || '', stops:r.stops || [], dropoff:r.dropoff || '',
@@ -63,7 +68,7 @@ function fromRecord(r) {
   return {
     id:r.id, status:r.status, created_at:r.createdAt, expires_at:r.expiresAt,
     start_at:r.startAt, end_at:r.endAt, customer_name:r.customer?.name || '',
-    customer_phone:r.customer?.phone || '', occasion:r.occasion || '', service:r.service || '',
+    customer_phone:r.customer?.phone || '', customer_email:r.customer?.email || '', occasion:r.occasion || '', service:r.service || '',
     total:r.total || 0, deposit:r.deposit || 0, passengers:r.passengers || 1,
     pickup:r.pickup || '', stops:r.stops || [], dropoff:r.dropoff || '',
     addons:r.addons || {}, square_order_id:r.squareOrderId || null,
@@ -137,7 +142,7 @@ function makeRecord(b, status = 'pending') {
     id: crypto.randomUUID(), status, createdAt:new Date().toISOString(),
     expiresAt:status === 'hold' ? new Date(Date.now()+HOLD_MINUTES*60000).toISOString() : null,
     startAt:startAt.toISOString(), endAt:endAt.toISOString(),
-    customer:{name:b.name || '',phone:b.phone || ''}, occasion:b.occasion || '',
+    customer:{name:b.name || '',phone:b.phone || '',email:b.email || ''}, occasion:b.occasion || '',
     service:b.service || '', total:Number(b.total || 0), deposit:100,
     passengers:Number(b.passengers || 1), pickup:b.pickup || '',
     stops:Array.isArray(b.stops) ? b.stops : [], dropoff:b.dropoff || '', addons:b.addons || {}
@@ -162,6 +167,63 @@ async function createSquarePaymentLink(reservation) {
   }
   return data.payment_link;
 }
+
+function emailEscape(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function reservationEmailDetails(r) {
+  const date = new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'America/New_York'}).format(new Date(r.startAt));
+  const timeFmt = new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
+  const stops = (r.stops || []).filter(Boolean);
+  return {
+    date,
+    time: `${timeFmt.format(new Date(r.startAt))} – ${timeFmt.format(new Date(r.endAt))}`,
+    stops: stops.length ? stops.map((s,i)=>`${i+1}. ${s}`).join('\\n') : 'None',
+    stopsHtml: stops.length ? `<ol>${stops.map(s=>`<li>${emailEscape(s)}</li>`).join('')}</ol>` : '<p>None</p>'
+  };
+}
+function reservationEmailHtml(title, intro, r, extraHtml = '') {
+  const d = reservationEmailDetails(r);
+  const rows = [
+    ['Customer',r.customer?.name],['Email',r.customer?.email],['Phone',r.customer?.phone],
+    ['Date',d.date],['Time',d.time],['Service',r.service],['Occasion',r.occasion],
+    ['Passengers',r.passengers],['Pickup',r.pickup],['Drop-off',r.dropoff],
+    ['Estimated total',`$${Number(r.total || 0).toFixed(2)}`],['Deposit',`$${Number(r.deposit || 0).toFixed(2)}`]
+  ];
+  return `<div style="font-family:Arial,sans-serif;color:#171717;max-width:640px;margin:auto"><div style="background:#111;color:#e8bd58;padding:22px 26px"><h1 style="margin:0;font-size:22px">BK Exclusivez</h1></div><div style="padding:24px;border:1px solid #e5e5e5"><h2 style="margin-top:0">${emailEscape(title)}</h2><p>${emailEscape(intro)}</p><table style="width:100%;border-collapse:collapse">${rows.map(([k,v])=>`<tr><td style="padding:9px;border-bottom:1px solid #eee;color:#666;width:36%">${emailEscape(k)}</td><td style="padding:9px;border-bottom:1px solid #eee;font-weight:bold">${emailEscape(v || 'Not provided')}</td></tr>`).join('')}</table><h3>Additional stops</h3>${d.stopsHtml}${extraHtml}<p style="margin-top:26px;color:#777;font-size:12px">BK Exclusivez · Tri-State Area</p></div></div>`;
+}
+async function sendEmail({to, subject, html, text}) {
+  if (!RESEND_API_KEY) {
+    console.error('RESEND_API_KEY is not configured; email notification skipped:', subject);
+    return false;
+  }
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method:'POST',
+      headers:{Authorization:`Bearer ${RESEND_API_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({from:RESEND_FROM_EMAIL,to:Array.isArray(to)?to:[to],subject,html,text:text || subject})
+    });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) {
+      console.error('Resend email failed:',res.status,data);
+      return false;
+    }
+    console.log('Resend email sent:',data.id,subject);
+    return true;
+  } catch (error) {
+    console.error('Resend request error:',error);
+    return false;
+  }
+}
+async function notifyAdmin(title, intro, record, extraHtml = '') {
+  return sendEmail({
+    to:BK_NOTIFICATION_EMAIL,
+    subject:`BK Exclusivez — ${title}`,
+    html:reservationEmailHtml(title,intro,record,extraHtml),
+    text:`${title}\\n${intro}\\n${JSON.stringify(record,null,2)}`
+  });
+}
+
 function cookieValue(event, name) {
   const cookies = String(event.headers?.cookie || event.headers?.Cookie || '').split(';');
   const item = cookies.map(x=>x.trim()).find(x=>x.startsWith(`${name}=`));
@@ -198,6 +260,9 @@ async function squareWebhook(event) {
         const reservation=await getBySquareOrder(payment.order_id);
         if (reservation) {
           await updateRecord(reservation.id,{status:'confirmed',expiresAt:null,squarePaymentId:payment.id,paidAt:new Date().toISOString()});
+          const paidExtra = `<p style="font-size:18px;font-weight:bold;color:#167a43">Deposit payment received — your reservation is confirmed.</p>`;
+          if (reservation.customer?.email) await sendEmail({to:reservation.customer.email,subject:'BK Exclusivez deposit received — reservation confirmed',html:reservationEmailHtml('Your reservation is confirmed','We received your $100 deposit. Thank you for booking with BK Exclusivez.',reservation,paidExtra),text:'Your BK Exclusivez deposit was received and your reservation is confirmed.'});
+          await notifyAdmin('Deposit paid — reservation confirmed','Square reports that the customer completed the $100 reservation deposit.',reservation,`<p>Square payment ID: ${emailEscape(payment.id)}</p>`);
           console.log(`Reservation ${reservation.id} marked as PAID.`);
         } else {
           console.error(`No reservation found for Square order ${payment.order_id}.`);
@@ -247,15 +312,18 @@ exports.handler = async (event) => {
       const record=makeRecord(b,'pending');
       record.expiresAt=null;
       await insertRecord(record);
+      await notifyAdmin('New reservation request', 'A new Black Truck reservation is waiting for your review in the admin menu.', record);
       return response(201,{ok:true,reservationId:record.id,status:'pending'});
     }
     if (method==='POST' && pathname==='/api/airport-quote') {
       const b=parseBody(event);
+      if (!validEmail(b.email)) return fail(400,'Please enter a valid email address so we can send quote updates.');
       if (!validDate(b.date)||!b.start_time||!b.end_time) return fail(400,'Please provide a valid date and time.');
       const start=minutesFromTime(b.start_time),end=Number(b.end_minutes);
       if (start===null||!Number.isFinite(end)||end<=start) return fail(400,'Invalid quote time.');
       const record=makeRecord({...b,total:0},'quote');record.deposit=0;record.service='Airport Pickup / Drop-Off — Price Upon Inquiry';
       await insertRecord(record);
+      await notifyAdmin('New airport quote inquiry', 'A customer submitted an airport transportation quote request. Please contact them with pricing.', record);
       return response(201,{ok:true,requestId:record.id});
     }
 
@@ -301,6 +369,10 @@ exports.handler = async (event) => {
           return fail(409,'This time now conflicts with another confirmed booking or blocked time.');
         const link=await createSquarePaymentLink(record);
         const updated=await updateRecord(id,{status:'awaiting_payment',expiresAt:null,squarePaymentLinkId:link.id,squareOrderId:link.order_id,squarePaymentUrl:link.url});
+        if (record.customer?.email) {
+          const paymentHtml = `<p style="margin:20px 0"><a href="${emailEscape(link.url)}" style="display:inline-block;background:#d7a934;color:#111;padding:14px 22px;text-decoration:none;font-weight:bold;border-radius:4px">Pay $100 Reservation Deposit</a></p><p>Your reservation is approved. Your booking is secured once the $100 deposit payment is completed.</p>`;
+          await sendEmail({to:record.customer.email,subject:'Your BK Exclusivez reservation has been approved',html:reservationEmailHtml('Your reservation is approved','Please use the secure Square link below to pay your $100 deposit.',record,paymentHtml),text:`Your BK Exclusivez reservation is approved. Pay your $100 deposit here: ${link.url}`});
+        }
         return response(200,{ok:true,booking:updated,paymentUrl:link.url});
       }
       const match=pathname.match(/^\/api\/admin\/bookings\/([^/]+)$/);
@@ -311,6 +383,9 @@ exports.handler = async (event) => {
         const b=parseBody(event),allowed=['quote','pending','awaiting_payment','confirmed','cancelled','hold','blocked'];
         if (!allowed.includes(b.status)) return fail(400,'Invalid status.');
         const updated=await updateRecord(id,{status:b.status,expiresAt:b.status==='hold'?record.expiresAt:null,adminNote:b.adminNote!==undefined?String(b.adminNote):record.adminNote});
+        if (record.status==='pending' && b.status==='cancelled' && record.customer?.email) {
+          await sendEmail({to:record.customer.email,subject:'Update on your BK Exclusivez reservation request',html:reservationEmailHtml('Reservation request update','Unfortunately, we are unable to approve this reservation request. Please contact BK Exclusivez if you would like help finding another time.',record),text:'Unfortunately, we are unable to approve this reservation request. Please contact BK Exclusivez if you would like help finding another time.'});
+        }
         return response(200,{ok:true,booking:updated});
       }
     }

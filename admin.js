@@ -32,7 +32,7 @@ function openReservationDetails(r){
   const stops=Array.isArray(r.stops)?r.stops.filter(Boolean):[];
   const addons=r.addons&&typeof r.addons==='object'?Object.entries(r.addons).filter(([,v])=>v&&v!==false&&v!==''):[];
   details.innerHTML=`<div class="reservation-detail-grid">
-    ${detailRow('Customer',r.customer?.name)}${detailRow('Phone',r.customer?.phone)}
+    ${detailRow('Customer',r.customer?.name)}${detailRow('Phone',r.customer?.phone)}${detailRow('Email',r.customer?.email)}
     ${detailRow('Date',new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(r.startAt)))}${detailRow('Time',`${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.startAt))} – ${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.endAt))}`)}
     ${detailRow('Duration',`${duration.toFixed(1)} hours`)}${detailRow('Passengers',String(r.passengers??1))}
     ${detailRow('Service',r.service)}${detailRow('Occasion',r.occasion)}
