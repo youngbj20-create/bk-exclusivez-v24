@@ -19,5 +19,13 @@
 </section>
 <section class="panel records"><div class="panel-head"><div><p class="eyebrow">CUSTOMERS</p><h2>Bookings & Requests</h2></div><select id="statusFilter"><option value="all">All statuses</option><option value="pending">Pending approval</option><option value="awaiting_payment">Approved · Awaiting deposit</option><option value="confirmed">Confirmed / Paid</option><option value="quote">Airport quotes</option><option value="hold">Legacy holds</option><option value="blocked">Blocked</option><option value="cancelled">Cancelled</option></select></div><div class="table-wrap"><table><thead><tr><th>Date / Time</th><th>Customer</th><th>Service</th><th>Total</th><th>Deposit</th><th>Status</th><th>Action</th></tr></thead><tbody id="recordsBody"></tbody></table></div></section>
 </main></div>
+<div id="reservationModal" class="reservation-modal hidden" role="dialog" aria-modal="true" aria-labelledby="reservationModalTitle">
+  <div class="reservation-modal-backdrop" data-close-reservation></div>
+  <section class="reservation-modal-card">
+    <div class="reservation-modal-head"><div><p class="eyebrow">RESERVATION REVIEW</p><h2 id="reservationModalTitle">Reservation Details</h2></div><button type="button" class="modal-close" data-close-reservation aria-label="Close">×</button></div>
+    <div id="reservationDetails" class="reservation-details"></div>
+    <div class="reservation-modal-actions"><button type="button" class="mini-btn" id="modalApproveBtn">Approve & Create Deposit Link</button><button type="button" class="mini-btn danger" id="modalDeclineBtn">Decline Request</button></div>
+  </section>
+</div>
 <script src="admin.js"></script>
 </body></html>

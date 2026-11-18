@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s);
 const loginView=$('#loginView'),dashboardView=$('#dashboardView'),loginForm=$('#loginForm'),loginError=$('#loginError');
 const blockStart=$('#blockStart'),blockEnd=$('#blockEnd'),blockDate=$('#blockDate'),calendarFocus=$('#calendarFocus'),blockAllDay=$('#blockAllDay');
-let records=[];
+let records=[];let selectedReservationId=null;
 const pad=n=>String(n).padStart(2,'0');
 function formatTime(m){const h=Math.floor(m/60)%24,s=h>=12?'PM':'AM',dh=(h%12)||12;return `${dh}:${pad(m%60)} ${s}`}
 function dateKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -18,13 +18,43 @@ loginForm.addEventListener('submit',async e=>{e.preventDefault();loginError.text
 $('#logoutBtn').addEventListener('click',async()=>{await api('/api/admin/logout',{method:'POST'});showLogin()});
 async function loadRecords(){try{const d=await api('/api/admin/bookings');records=d.bookings||[];renderStats();renderTable();}catch(err){console.error(err)}}
 function renderStats(){const live=records.filter(r=>r.status!=='cancelled');$('#statTotal').textContent=live.length;$('#statConfirmed').textContent=live.filter(r=>r.status==='confirmed').length;$('#statQuotes').textContent=live.filter(r=>r.status==='quote').length;$('#statHolds').textContent=live.filter(r=>r.status==='pending').length}
-function renderTable(){const filter=$('#statusFilter').value;const body=$('#recordsBody');body.innerHTML='';records.filter(r=>filter==='all'||r.status===filter).forEach(r=>{const tr=document.createElement('tr');const actions=r.status==='pending'?`<button class="mini-btn" data-action="approve" data-id="${r.id}">Approve & Create Deposit Link</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Decline</button>`:r.status==='quote'?`<button class="mini-btn" data-action="confirm" data-id="${r.id}">Mark Quote Handled</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Decline</button>`:r.status==='awaiting_payment'?`<button class="mini-btn" data-action="copy-link" data-id="${r.id}">Copy $100 Deposit Link</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:r.status==='confirmed'?`<button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:r.status==='blocked'?`<button class="mini-btn danger" data-action="delete" data-id="${r.id}">Unblock</button>`:r.status==='hold'?`<button class="mini-btn" data-action="confirm" data-id="${r.id}">Mark Confirmed</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:'';tr.innerHTML=`<td>${dateTimeLabel(r.startAt)}<br>→ ${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.endAt))}</td><td class="customer"><strong>${esc(r.customer?.name||'—')}</strong><span>${esc(r.customer?.phone||'')}</span></td><td>${esc(r.service||'')}</td><td>${r.status==='quote'?'Inquiry':money(r.total)}</td><td>${money(r.deposit)}</td><td><span class="status">${r.status}</span></td><td><div class="action-row">${actions}</div></td>`;body.appendChild(tr)})}
+function renderTable(){const filter=$('#statusFilter').value;const body=$('#recordsBody');body.innerHTML='';records.filter(r=>filter==='all'||r.status===filter).forEach(r=>{const tr=document.createElement('tr');const actions=r.status==='pending'?`<button class="mini-btn" data-action="view" data-id="${r.id}">View Details</button><button class="mini-btn" data-action="approve" data-id="${r.id}">Approve & Create Deposit Link</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Decline</button>`:r.status==='quote'?`<button class="mini-btn" data-action="confirm" data-id="${r.id}">Mark Quote Handled</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Decline</button>`:r.status==='awaiting_payment'?`<button class="mini-btn" data-action="copy-link" data-id="${r.id}">Copy $100 Deposit Link</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:r.status==='confirmed'?`<button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:r.status==='blocked'?`<button class="mini-btn danger" data-action="delete" data-id="${r.id}">Unblock</button>`:r.status==='hold'?`<button class="mini-btn" data-action="confirm" data-id="${r.id}">Mark Confirmed</button><button class="mini-btn danger" data-action="cancel" data-id="${r.id}">Cancel</button>`:'';tr.innerHTML=`<td>${dateTimeLabel(r.startAt)}<br>→ ${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.endAt))}</td><td class="customer"><strong>${esc(r.customer?.name||'—')}</strong><span>${esc(r.customer?.phone||'')}</span></td><td>${esc(r.service||'')}</td><td>${r.status==='quote'?'Inquiry':money(r.total)}</td><td>${money(r.deposit)}</td><td><span class="status">${r.status}</span></td><td><div class="action-row">${actions}</div></td>`;body.appendChild(tr)})}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 $('#statusFilter').addEventListener('change',renderTable);
+
+function detailRow(label,value){return `<div class="reservation-detail-row"><span>${esc(label)}</span><strong>${esc(value||'Not provided')}</strong></div>`}
+function openReservationDetails(r){
+  if(!r)return;
+  selectedReservationId=r.id;
+  const modal=$('#reservationModal'),details=$('#reservationDetails');
+  const duration=Math.max(0,(new Date(r.endAt)-new Date(r.startAt))/3600000);
+  const stops=Array.isArray(r.stops)?r.stops.filter(Boolean):[];
+  const addons=r.addons&&typeof r.addons==='object'?Object.entries(r.addons).filter(([,v])=>v&&v!==false&&v!==''):[];
+  details.innerHTML=`<div class="reservation-detail-grid">
+    ${detailRow('Customer',r.customer?.name)}${detailRow('Phone',r.customer?.phone)}
+    ${detailRow('Date',new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(r.startAt)))}${detailRow('Time',`${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.startAt))} – ${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(r.endAt))}`)}
+    ${detailRow('Duration',`${duration.toFixed(1)} hours`)}${detailRow('Passengers',String(r.passengers??1))}
+    ${detailRow('Service',r.service)}${detailRow('Occasion',r.occasion)}
+    ${detailRow('Pickup',r.pickup)}${detailRow('Drop-off',r.dropoff)}
+    ${detailRow('Estimated total',money(r.total))}${detailRow('Deposit due',money(r.deposit))}
+    ${detailRow('Request submitted',r.createdAt?dateTimeLabel(r.createdAt):'Not available')}
+  </div>
+  <div class="reservation-detail-block"><span>Additional stops</span>${stops.length?`<ol>${stops.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:'<p>None added</p>'}</div>
+  <div class="reservation-detail-block"><span>Additional options</span>${addons.length?`<ul>${addons.map(([k,v])=>`<li>${esc(k.replace(/([A-Z])/g,' $1'))}: ${esc(typeof v==='object'?JSON.stringify(v):String(v))}</li>`).join('')}</ul>`:'<p>None listed</p>'}</div>`;
+  const pending=r.status==='pending';$('#modalApproveBtn').hidden=!pending;$('#modalDeclineBtn').hidden=!pending;
+  modal.classList.remove('hidden');document.body.classList.add('modal-open');
+}
+function closeReservationDetails(){selectedReservationId=null;$('#reservationModal').classList.add('hidden');document.body.classList.remove('modal-open')}
+document.querySelectorAll('[data-close-reservation]').forEach(el=>el.addEventListener('click',closeReservationDetails));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#reservationModal').classList.contains('hidden'))closeReservationDetails()});
+$('#modalApproveBtn').addEventListener('click',async()=>{const id=selectedReservationId;closeReservationDetails();if(!id)return;const btn=document.querySelector(`[data-action="approve"][data-id="${CSS.escape(id)}"]`);if(btn)btn.click()});
+$('#modalDeclineBtn').addEventListener('click',async()=>{const id=selectedReservationId;closeReservationDetails();if(!id)return;const btn=document.querySelector(`[data-action="cancel"][data-id="${CSS.escape(id)}"]`);if(btn)btn.click()});
+
 $('#recordsBody').addEventListener('click',async e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
   const id=b.dataset.id,action=b.dataset.action;
   try{
+    if(action==='view'){openReservationDetails(records.find(r=>r.id===id));return}
     if(action==='copy-link'){
       const record=records.find(r=>r.id===id);
       if(!record?.squarePaymentUrl) throw new Error('No saved Square payment link was found.');
