@@ -224,7 +224,7 @@ if(bookingForm){
   document.querySelector('[name="service"]')?.addEventListener('change',updatePriceSummary);
 }
 
-// Submit a temporary 15-minute hold. Square confirmation will convert this to a permanent reservation later.
+// Submit a pending booking request. Admin approval is required before a Square deposit link is created.
 bookingForm?.addEventListener('submit',async e=>{
   e.preventDefault();
   const f=new FormData(e.currentTarget);
@@ -249,38 +249,17 @@ bookingForm?.addEventListener('submit',async e=>{
       return;
     }
     const r=await fetch('/api/hold',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(payload)
-});
-
-const data=await r.json();
-
-if(!r.ok){
-  throw new Error(data.error||'That time is no longer available.');
-}
-
-const paymentResponse=await fetch('/api/create-payment-link',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({
-    reservationId:data.reservationId
-  })
-});
-
-const paymentData=await paymentResponse.json();
-
-if(!paymentResponse.ok){
-  throw new Error(paymentData.error||'Unable to create the Square payment link.');
-}
-
-if(!paymentData.paymentUrl){
-  throw new Error('Square did not return a payment link.');
-}
-
-window.location.href=paymentData.paymentUrl;
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Unable to submit your booking request.');
+    alert('Your booking request has been submitted! BK Exclusivez will review it. If approved, you will receive a $100 deposit payment link to secure your reservation. No payment has been collected yet.');
+    bookingForm.reset();
+    updatePriceSummary();
   }catch(err){alert(err.message||'Unable to submit that request. Please try again.');}
-  finally{if(button){button.disabled=false;button.textContent=isAirport?'Request Airport Quote':'Continue to $100 Deposit';}}
+  finally{if(button){button.disabled=false;button.textContent=isAirport?'Request Airport Quote':'Submit Booking Request';}}
 });
 
 // Add and remove optional stops dynamically.

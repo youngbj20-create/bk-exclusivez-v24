@@ -55,7 +55,7 @@ function toRecord(r) {
     deposit:Number(r.deposit || 0), passengers:Number(r.passengers || 1),
     pickup:r.pickup || '', stops:r.stops || [], dropoff:r.dropoff || '',
     addons:r.addons || {}, squareOrderId:r.square_order_id,
-    squarePaymentLinkId:r.square_payment_link_id, squarePaymentId:r.square_payment_id,
+    squarePaymentLinkId:r.square_payment_link_id, squarePaymentUrl:r.square_payment_url || null, squarePaymentId:r.square_payment_id,
     paidAt:r.paid_at, adminNote:r.admin_note || ''
   };
 }
@@ -67,7 +67,7 @@ function fromRecord(r) {
     total:r.total || 0, deposit:r.deposit || 0, passengers:r.passengers || 1,
     pickup:r.pickup || '', stops:r.stops || [], dropoff:r.dropoff || '',
     addons:r.addons || {}, square_order_id:r.squareOrderId || null,
-    square_payment_link_id:r.squarePaymentLinkId || null,
+    square_payment_link_id:r.squarePaymentLinkId || null, square_payment_url:r.squarePaymentUrl || null,
     square_payment_id:r.squarePaymentId || null, paid_at:r.paidAt || null,
     admin_note:r.adminNote || ''
   };
@@ -107,7 +107,7 @@ async function insertRecord(record) {
 async function updateRecord(id, patch) {
   const map = {
     status:'status', expiresAt:'expires_at', squareOrderId:'square_order_id',
-    squarePaymentLinkId:'square_payment_link_id', squarePaymentId:'square_payment_id',
+    squarePaymentLinkId:'square_payment_link_id', squarePaymentUrl:'square_payment_url', squarePaymentId:'square_payment_id',
     paidAt:'paid_at', adminNote:'admin_note'
   };
   const body = {};
@@ -129,8 +129,8 @@ async function cleanupExpired() {
   await db(`reservations?status=eq.hold&expires_at=lte.${encodeURIComponent(now)}`, {method:'DELETE'});
   return allRecords();
 }
-function busy(r) { return r.status === 'confirmed' || r.status === 'blocked' || (r.status === 'hold' && r.expiresAt && new Date(r.expiresAt).getTime() > Date.now()); }
-function makeRecord(b, status = 'hold') {
+function busy(r) { return r.status === 'confirmed' || r.status === 'blocked' || r.status === 'awaiting_payment' || (r.status === 'hold' && r.expiresAt && new Date(r.expiresAt).getTime() > Date.now()); }
+function makeRecord(b, status = 'pending') {
   const startMinutes = minutesFromTime(b.start_time), endMinutes = Number(b.end_minutes);
   const startAt = localDateTime(b.date, startMinutes), endAt = localDateTime(b.date, endMinutes);
   return {
@@ -243,20 +243,11 @@ exports.handler = async (event) => {
       const start=localDateTime(b.date,minutesFromTime(b.start_time)), end=localDateTime(b.date,Number(b.end_minutes));
       if (rows.filter(busy).some(r=>overlaps(start.getTime(),end.getTime(),new Date(r.startAt).getTime(),new Date(r.endAt).getTime())))
         return response(409,{error:'That time is no longer available. Please choose another time.'});
-      const record=makeRecord(b,'hold');
+      // Customer requests are pending until the owner approves them. No deposit is charged here.
+      const record=makeRecord(b,'pending');
+      record.expiresAt=null;
       await insertRecord(record);
-      return response(201,{ok:true,reservationId:record.id,expiresAt:record.expiresAt});
-    }
-    if (method==='POST' && pathname==='/api/create-payment-link') {
-      const b=parseBody(event);
-      if (!b.reservationId) return fail(400,'Reservation ID is required.');
-      const reservation=await getById(String(b.reservationId));
-      if (!reservation) return fail(404,'Reservation not found or hold expired.');
-      if (reservation.status!=='hold') return fail(400,'This reservation is no longer available for payment.');
-      if (reservation.expiresAt && new Date(reservation.expiresAt).getTime()<=Date.now()) return fail(410,'Your reservation hold has expired. Please start again.');
-      const link=await createSquarePaymentLink(reservation);
-      await updateRecord(reservation.id,{squarePaymentLinkId:link.id,squareOrderId:link.order_id});
-      return response(200,{ok:true,reservationId:reservation.id,paymentUrl:link.url,paymentLinkId:link.id});
+      return response(201,{ok:true,reservationId:record.id,status:'pending'});
     }
     if (method==='POST' && pathname==='/api/airport-quote') {
       const b=parseBody(event);
@@ -299,12 +290,25 @@ exports.handler = async (event) => {
         await insertRecord(record);
         return response(201,{ok:true,booking:record});
       }
+      const approveMatch=pathname.match(/^\/api\/admin\/bookings\/([^/]+)\/approve$/);
+      if (approveMatch && method==='POST') {
+        const id=decodeURIComponent(approveMatch[1]);
+        const record=await getById(id);
+        if (!record) return fail(404,'Booking not found.');
+        if (record.status!=='pending') return fail(400,'Only pending Black Truck booking requests can be approved here.');
+        const rows=(await cleanupExpired()).filter(r=>r.id!==id && busy(r));
+        if (rows.some(r=>overlaps(new Date(record.startAt).getTime(),new Date(record.endAt).getTime(),new Date(r.startAt).getTime(),new Date(r.endAt).getTime())))
+          return fail(409,'This time now conflicts with another confirmed booking or blocked time.');
+        const link=await createSquarePaymentLink(record);
+        const updated=await updateRecord(id,{status:'awaiting_payment',expiresAt:null,squarePaymentLinkId:link.id,squareOrderId:link.order_id,squarePaymentUrl:link.url});
+        return response(200,{ok:true,booking:updated,paymentUrl:link.url});
+      }
       const match=pathname.match(/^\/api\/admin\/bookings\/([^/]+)$/);
       if (match && (method==='PATCH'||method==='DELETE')) {
         const id=decodeURIComponent(match[1]), record=await getById(id);
         if (!record) return fail(404,'Booking not found.');
         if (method==='DELETE') { await deleteRecord(id); return response(200,{ok:true}); }
-        const b=parseBody(event),allowed=['quote','confirmed','cancelled','hold','blocked'];
+        const b=parseBody(event),allowed=['quote','pending','awaiting_payment','confirmed','cancelled','hold','blocked'];
         if (!allowed.includes(b.status)) return fail(400,'Invalid status.');
         const updated=await updateRecord(id,{status:b.status,expiresAt:b.status==='hold'?record.expiresAt:null,adminNote:b.adminNote!==undefined?String(b.adminNote):record.adminNote});
         return response(200,{ok:true,booking:updated});

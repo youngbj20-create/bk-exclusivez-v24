@@ -1,0 +1,33 @@
+BK EXCLUSIVEZ — ADMIN APPROVAL WORKFLOW UPDATE
+
+WHAT CHANGED
+1. Customer bookings now submit as Pending Approval.
+2. Submitting a booking does NOT create a Square payment link or charge a deposit.
+3. Admin dashboard has Approve & Create Deposit Link and Decline actions.
+4. Approval creates a $100 Square payment link and copies it to the admin clipboard when supported.
+5. The booking remains Approved / Awaiting Deposit until Square's payment.updated webhook confirms payment.
+6. Airport quote requests remain quote-only and do not receive a deposit link through this workflow.
+
+IMPORTANT DATABASE MIGRATION
+Run this SQL once in Supabase SQL Editor before deploying:
+
+ALTER TABLE public.reservations
+ADD COLUMN IF NOT EXISTS square_payment_url text;
+
+This stores the Square checkout URL so the admin can copy it again after refreshing the dashboard.
+
+DEPLOY
+Upload the contents of this ZIP to the existing Netlify site's production deploy source / GitHub repository. Keep existing Netlify environment variables unchanged. Do not replace secrets or paste them into files.
+
+TEST
+1. Submit a customer booking request. It should show Pending Approval and should NOT redirect to Square.
+2. Log in to /admin. Click Approve & Create Deposit Link.
+3. The $100 payment link should be copied; send it to the customer.
+4. Complete payment in Square test mode first if possible.
+5. Confirm the Square webhook changes the booking to Confirmed.
+
+NOTES
+- Pending requests do not block availability until approved.
+- On approval, the server checks for conflicts with already confirmed bookings and blocked times.
+- Approved / Awaiting Deposit requests block the time while waiting for payment.
+- The legacy /api/create-payment-link public endpoint was removed so customers cannot create a deposit link before admin approval.
